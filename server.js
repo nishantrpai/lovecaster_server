@@ -50,7 +50,6 @@ io.on("connection", (socket) => {
       accounts.push({ preference, username, gender });
     } 
     // send all accounts to the user that are of preference
-    console.log('accounts', accounts, 'sending accounts to', username);
     socket.emit("getAccounts", accounts.filter(account => account.gender === preference));
   });
 
