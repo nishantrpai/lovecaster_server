@@ -1,10 +1,37 @@
+// server for dating on warpcast using socket.io
 const { Server } = require("socket.io");
 const http = require("http");
 
 const httpServer = http.createServer();
-let strokes = {
-  
+let accounts = [{
+  username: 'makemake',
+  preference: 'male',
+  gender: 'female'
+}, {
+  username: 'linda',
+  preference: 'male',
+  gender: 'female'
+},
+{
+  username: 'nishu',
+  preference: 'female',
+  gender: 'male'
+},
+{
+  username: 'john',
+  preference: 'female',
+  gender: 'male'
 }
+
+];
+let matches = [];
+let user = {
+  username: '',
+  preference: '',
+  gender: ''
+}
+let room = 'lovecaster' // everyone is in the same room 
+
 const io = new Server(httpServer, {
   // your options here
   cors: {
@@ -16,39 +43,17 @@ io.on("connection", (socket) => {
   console.log(`New connection: ${socket.id}`);
 
   // join a specific room
-  socket.on("joinRoom", (roomId) => {
-    socket.join(roomId);
-    if (!strokes[roomId]) {
-      strokes[roomId] = [];
-    }
-    console.log(`Socket ${socket.id} joined room ${roomId}`);
+  socket.on("joinRoom", ({ preference, username, gender }) => {
+    socket.join(room);
+    // add user to accounts
+    if (!accounts.find(account => account.username === username)) {
+      accounts.push({ preference, username, gender });
+    } 
+    // send all accounts to the user that are of preference
+    console.log('accounts', accounts, 'sending accounts to', username);
+    socket.emit("getAccounts", accounts.filter(account => account.gender === preference));
   });
 
-  // forwarding messages to a room
-  socket.on("sendMessage", ({ roomId, message }) => {
-    io.to(roomId).emit("newMessage", message);
-  });
-
-  socket.on("getStrokes", (roomId) => {
-    io.to(roomId).emit("getStrokens", strokes[roomId]);
-  });
-
-  socket.on("getNoRooms", () => {
-    io.emit("getNoRooms", Object.keys(strokes).length);
-  });
-
-  socket.on("drawing", ({ roomId, data }) => {
-    if (!strokes[roomId]) {
-      strokes[roomId] = [];
-    }
-    strokes[roomId].push(data);
-    io.to(roomId).emit("drawing", strokes[roomId]);
-  });
-
-  socket.on('resetCanvas', (roomId) => {
-    console.log('resetCanvas', roomId);
-    io.to(roomId).emit('drawing', strokes);
-  });
 
 });
 
