@@ -50,9 +50,16 @@ io.on("connection", (socket) => {
       accounts.push({ preference, username, gender });
     } 
     // send all accounts to the user that are of preference
-    socket.emit("getAccounts", accounts.filter(account => account.gender === preference));
+    socket.emit("getAccounts", accounts.filter(account => account.gender === preference && account.username !== username));
   });
 
+  socket.on("match", ({ username, match }) => {
+    // add match to matches
+    console.log('match', username, match)
+    matches.push({ username, match });
+    // send all matches to the user
+    socket.emit("getMatches", matches);
+  });
 
 });
 
